@@ -13967,7 +13967,7 @@ task.spawn(function()
 
         task.spawn(function()
             -- 1. Tunggu sampai karakter benar-benar masuk world & menapak tanah
-            while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
+            while alive() and not (Refs.World and Refs.Inv) do 
                 task.wait(1) 
             end
             
