@@ -10434,20 +10434,30 @@ do (function() -- fungsi sendiri: variabel di dalam tidak ikut batas 200 local
         elseif type(rawget(w, "enter")) == "function" then
             local ok, res, msg, hopping = pcall(w.enter, name)
             if not ok then return false, strip(res) end
-            -- Game v1225: false, pesan, true berarti server sedang memindahkan pemain.
             if hopping == true then return false, strip(msg), true end
             if not res then return false, strip(msg) end
         else
             return false, "fungsi masuk world tidak ketemu"
         end
-        -- berhasil kalau data world sudah diganti yang baru
+        
+        -- === UBAH BAGIAN LOOP PENGECEKAN DI BAWAH INI ===
         local t0 = os.clock()
-        while alive() and os.clock() - t0 < 8 do
+        while alive() and os.clock() - t0 < 12 do -- Dinaikkan ke 12 detik untuk antisipasi ping drop
             if WorldFinder.Busy and WorldFinder.Teleporting then return false, "Pindah server", true end
-            if rawget(w, "fg") ~= oldFg then return true end
-            task.wait(0.25)
+            
+            -- Cek apakah data dunia berubah, nama world sinkron, dan karakter sudah berhasil spawn menapak dunia
+            if rawget(w, "fg") ~= oldFg and string.upper(rawget(w, "name") or "") == string.upper(name) and playerState() then 
+                task.wait(0.5) -- Beri jeda setengah detik agar data inventori & drop stabil termuat
+                return true 
+            end
+            task.wait(0.5)
         end
-        return false, "world penuh / dikunci / gagal"
+        
+        -- Jika gagal sinkron (seperti bug tersangkut di pintu), paksa panggil ulang enterWorld sekali lagi
+        if alive() and string.upper(rawget(w, "name") or "") ~= string.upper(name) then
+            pcall(w.enter, name)
+        end
+        return false, "world penuh / dikunci / gagal sinkron server"
     end
 
     local function stillBack(token)
