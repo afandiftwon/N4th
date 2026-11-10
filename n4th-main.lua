@@ -7076,6 +7076,8 @@ local function pabrikStep(o)
         o.phase = "panen"
     end
 
+    o.phase = string.lower(tostring(o.phase))
+
     Pabrik.Phase = PHASE_NAME[o.phase or "panen"]
 
     -- Eksekusi Logika Per Fase Secara Adaptif
