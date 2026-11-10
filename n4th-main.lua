@@ -7142,11 +7142,18 @@ function Pabrik.stop(reason)
     autoEnd()
     releaseInput()
     Pabrik.Status = reason or "Dihentikan"
-    if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(false) end) end
+    
+    -- === PASTIKAN BAGIAN INI SINKRON DENGAN TOMBOL UI ===
+    if UI.PabrikToggle then 
+        pcall(function() UI.PabrikToggle:Set(false) end) 
+    end
+    -- ===================================================
+    
     if reason then
         notify("Pabrik", reason, 5)
         if not string.find(reason, "^Dihentikan") then Hook.send("pabrik", "Pabrik berhenti: " .. reason) end
     end
+    if Config and Config.save then Config.save(true) end -- Paksa simpan perubahan file fisik saat pabrik berhenti
 end
 
 function Pabrik.start()
@@ -12409,12 +12416,24 @@ do (function()
 
     safe(function()
         UI.PabrikToggle = pCtl:Toggle({
-            Title = "Jalankan Pabrik",
-            Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
-            Value = Pabrik.Running,
-            Callback = function(on)
-                if on then Pabrik.start() elseif Pabrik.Running then Pabrik.stop() end
-            end,
+        Title = "Jalankan Pabrik",
+        Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
+        Value = Pabrik.Running,
+        Callback = function(on)
+            if on then 
+                if not Pabrik.Running then
+                    Pabrik.start() 
+                    Pabrik.Running = true -- Set true setelah fungsi start dipicu agar tidak terkena lock return
+                    if Config and Config.save then Config.save(true) end 
+                end
+            else 
+                Pabrik.Running = false
+                if Rejoin then Rejoin.Last = nil end
+                if Guard then Guard.Saved = nil end
+                if Pabrik.stop then Pabrik.stop() end
+                if Config and Config.save then Config.save(true) end 
+            end
+        end,
         })
     end)
 
