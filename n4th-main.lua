@@ -13838,8 +13838,14 @@ task.spawn(function()
     end
     Config.start()
     if Pabrik.Running and alive() then
-        task.defer(function()
-            if Pabrik.start then Pabrik.start() end
+        task.spawn(function()
+            -- Menunggu hingga sistem game benar-benar terhubung dan siap
+            while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
+                task.wait(1) 
+            end
+            if alive() and Pabrik.Running then
+                if Pabrik.start then Pabrik.start() end
+            end
         end)
     end
     if I18N.SavePending then
