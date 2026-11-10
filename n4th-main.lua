@@ -7054,9 +7054,14 @@ local function pabrikStep(o)
             want = blocks > 0 and seeds < BOOT_SEEDS and nxt == nil
         end
         if want and breakReady() and pabrikBreak(o) then
-            -- block masih ada: lanjut break (habiskan dulu), block habis: tanam
-            o.phase = (o.breakMode == "always" and invCount(o.block) > 0) and "break" or "tanam"
+            -- === MODIFIKASI BARIS INI: Paksa cek sisa block fisik di tas inventori ===
+            if invCount(o.block) > 0 then
+                o.phase = "break" -- Jika block masih ada, kunci tetap di fase break (habiskan dulu!)
+            else
+                o.phase = "tanam" -- Jika block sudah murni 0, baru diizinkan pergi menanam
+            end
             return "break"
+            -- =========================================================================
         end
         o.phase = "tunggu"
         return "next"
