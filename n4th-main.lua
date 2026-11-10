@@ -12484,9 +12484,7 @@ do (function()
         UI.PabrikToggle = pCtl:Toggle({
             Title = "Jalankan Pabrik",
             Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
-            -- === UBAH BARIS INI: Baca langsung dari file json fisik agar anti-overwritten ===
             Value = (Config.saved("Pabrik", "Running") == true), 
-            -- ==============================================================================
             Callback = function(on)
                 if on then 
                     Pabrik.Running = true
@@ -12496,7 +12494,6 @@ do (function()
                     if Config.saved("Pabrik", "Running") == true and not playerState() then 
                         return 
                     end
-                    
                     Pabrik.Running = false
                     if Rejoin then Rejoin.Last = nil end
                     if Guard then Guard.Saved = nil end
@@ -13951,8 +13948,12 @@ task.spawn(function()
             if alive() and Config.saved("Pabrik", "Running") == true then
                 Pabrik.Running = true
                 if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(true) end) end
-                if Config and Config.save then Config.save(true) end
-                if Pabrik.start then Pabrik.start() end
+                
+                -- KITA JALANKAN DULU MESIN PABRIKNYA BIAR MASUK LOOP UTAMA
+                if Pabrik.start then Pabrik.start() end 
+                
+                -- BARU KITA PANGGIL PENYIMPANAN FISIK DI BARIS PALING AKHIR SETELAH AMAN
+                if Config and Config.save then Config.save(true) end 
             end
         end)
     end
