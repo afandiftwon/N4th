@@ -6507,6 +6507,26 @@ local function pabrikBreak(o)
     end
     if not o.live() then return false end
     State.Override = { offsets = Pabrik.Tiles, block = o.block, mode = "Place + Break" }
+
+    local x_kunci, y_kunci = Pabrik.BreakX, Pabrik.BreakY
+    local ikatan_kaki
+    ikatan_kaki = RunService.Heartbeat:Connect(function()
+        if not State.Running or not Pabrik.Running then 
+            if ikatan_kaki then ikatan_kaki:Disconnect() end 
+            return 
+        end
+        local cur = playerState()
+        if cur and (math.floor(cur.x) ~= x_kunci or math.floor(cur.y - 0.475) ~= y_kunci) then
+            pcall(function()
+                cur.x = x_kunci + 0.5
+                cur.y = y_kunci + 0.475
+                cur.vx = 0
+                cur.vy = 0
+            end)
+        end
+    end)
+    table.insert(Connections, ikatan_kaki)
+
     State.Quiet = true
     table.clear(HitCount)
     table.clear(PlacedAt)
