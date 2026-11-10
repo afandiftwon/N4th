@@ -13881,11 +13881,19 @@ task.spawn(function()
     Config.start()
     if Config.saved("Pabrik", "Running") == true and alive() then
         task.spawn(function()
+            -- Menunggu hingga karakter masuk world, referensi siap, DAN inventori tas terisi stabil
             while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
                 task.wait(1) 
             end
+            
+            -- === TAMBAHAN JEDA SINKRONISASI INVENTORI ===
             if alive() then
-                -- Tambahkan pemaksaan refresh UI saat auto-booting berhasil
+                task.wait(2.5) -- Beri jeda 2.5 detik ekstra agar data tas selesai dimuat penuh oleh game
+            end
+            -- ===========================================
+            
+            -- Eksekusi start hanya jika saklar config di file fisik json masih bernilai true
+            if alive() and Config.saved("Pabrik", "Running") == true then
                 if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(true) end) end
                 if Pabrik.start then Pabrik.start() end
             end
