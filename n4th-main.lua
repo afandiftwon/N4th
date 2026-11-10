@@ -12442,27 +12442,33 @@ do (function()
 
     safe(function()
         UI.PabrikToggle = pCtl:Toggle({
-        Title = "Jalankan Pabrik",
-        Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
-        Value = Pabrik.Running,
-        Callback = function(on)
-            if on then 
-                -- Langsung kunci status aktif sejak milidetik pertama tombol ditekan / dipicu otomatis
-                Pabrik.Running = true 
-                if Config and Config.save then Config.save(true) end 
-                
-                -- Panggil fungsi start setelah statusnya aman terkunci di file fisik config
-                Pabrik.start() 
-            else 
-                Pabrik.Running = false
-                if Rejoin then Rejoin.Last = nil end
-                if Guard then Guard.Saved = nil end
-                if Pabrik.stop then Pabrik.stop() end
-                if Config and Config.save then Config.save(true) end 
-            end
-        end,
-    })
+            Title = "Jalankan Pabrik",
+            Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
+            -- === UBAH VALUE BARIS INI: Mengikuti status config terakhir, bukan dikunci false ===
+            Value = Pabrik.Running, 
+            -- =================================================================================
+            Callback = function(on)
+                if on then 
+                    -- Kunci status memori aktif sejak milidetik pertama diklik
+                    Pabrik.Running = true
+                    if Config and Config.save then Config.save(true) end
+                    Pabrik.start() 
+                else 
+                    -- Cegah penulisan false jika dipicu oleh delay booting awal di luar world
+                    if Config.saved("Pabrik", "Running") == true and not playerState() then 
+                        return 
+                    end
+                    
+                    Pabrik.Running = false
+                    if Rejoin then Rejoin.Last = nil end
+                    if Guard then Guard.Saved = nil end
+                    if Pabrik.stop then Pabrik.stop() end
+                    if Config and Config.save then Config.save(true) end 
+                end
+            end,
+        })
     end)
+
 
     safe(function()
         UI.PabrikSeedDropdown = pCtl:Dropdown({
