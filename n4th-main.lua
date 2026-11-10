@@ -7160,7 +7160,7 @@ function Pabrik.start()
     -- Hapus pembatas 'if Pabrik.Running then return end' agar fungsi start bisa me-refresh tugasnya
     if WorldFinder.Busy then notify("World Finder", "Hentikan hunting sebelum menjalankan farming", 3) return end
     if AutoDrop.Busy then notify("Auto Drop", "Tunggu perjalanan drop selesai", 3) return end
-    
+    -- hahay
     -- === TAMBAHKAN BARIS DI BAWAH INI UNTUK MEMAKSA REFRESH REFERENSI GAME ===
     pcall(findRefs)
     pcall(findDropRefs, true)
