@@ -5738,9 +5738,6 @@ local function farmerScan(px, py, maxN, filter)
     for y = y0, y1 do
         local frow, below = w.fg[y], w.fg[y + 1]
         for x = x0, x1 do
-    for y = 0, H - 1 do
-        local frow, below = w.fg[y], w.fg[y + 1]
-        for x = 0, W - 1 do
             local id = frow and frow[x] or 0
             if id ~= 0 then
                 if fcHarvestOk(x, y) and (not FC.only or id == FC.only) then
