@@ -7224,10 +7224,13 @@ function Pabrik.start()
         err = "Atur lahan dulu (tab Lahan)"
     end
     if err then
-        if err == "Kamu belum masuk world" and Pabrik.Running then
-            Pabrik.Status = "Menunggu karakter masuk world..."
-            return
+        -- === TAMENG PENGAMAN SUPER KETAT: Mencegah bunuh diri saat lag pemuatan data booting ===
+        if Pabrik.Running and (err == "Kamu belum masuk world" or err == "Block dari seed ini tidak ketemu") then
+            Pabrik.Status = "Menunggu database game siap: " .. err
+            return -- Keluar dari fungsi dengan aman, BIARKAN SAKLAR UI TETAP MENYALA (TRUE)!
         end
+        -- ======================================================================================
+
         notify("Pabrik", err, 4)
         if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(false) end) end
         return
