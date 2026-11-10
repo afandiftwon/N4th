@@ -7141,6 +7141,15 @@ local function pabrikLoop(runId)
 end
 
 function Pabrik.stop(reason)
+    -- === PENGAMAN INTAN: Jika mati karena otomatis/lag booting, JANGAN matikan tombol UI ===
+    if reason == "Kamu belum masuk world" or reason == "Seed habis" then
+        if Pabrik.Running then
+            Pabrik.Status = "Menunggu game siap: " .. reason
+            return -- Skip penutupan saklar, biarkan tetap True (nyala)
+        end
+    end
+    -- ======================================================================================
+
     Pabrik.Running = false
     Pabrik.Traveling = false
     if State.Override then State.Running = false end
@@ -7148,17 +7157,15 @@ function Pabrik.stop(reason)
     releaseInput()
     Pabrik.Status = reason or "Dihentikan"
     
-    -- === PASTIKAN BAGIAN INI SINKRON DENGAN TOMBOL UI ===
     if UI.PabrikToggle then 
         pcall(function() UI.PabrikToggle:Set(false) end) 
     end
-    -- ===================================================
     
     if reason then
         notify("Pabrik", reason, 5)
         if not string.find(reason, "^Dihentikan") then Hook.send("pabrik", "Pabrik berhenti: " .. reason) end
     end
-    if Config and Config.save then Config.save(true) end -- Paksa simpan perubahan file fisik saat pabrik berhenti
+    if Config and Config.save then Config.save(true) end 
 end
 
 function Pabrik.start()
@@ -13886,20 +13893,21 @@ task.spawn(function()
     Config.start()
     if Config.saved("Pabrik", "Running") == true and alive() then
         task.spawn(function()
-            -- Menunggu hingga karakter masuk world, referensi siap, DAN inventori tas terisi stabil
+            -- 1. Tunggu sampai karakter benar-benar masuk world & menapak tanah
             while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
                 task.wait(1) 
             end
             
-            -- === TAMBAHAN JEDA SINKRONISASI INVENTORI ===
+            -- 2. Beri jeda 4 detik ekstra agar server selesai mengirimkan seluruh data tas inventori Anda
             if alive() then
-                task.wait(2.5) -- Beri jeda 2.5 detik ekstra agar data tas selesai dimuat penuh oleh game
+                task.wait(4) 
             end
-            -- ===========================================
             
-            -- Eksekusi start hanya jika saklar config di file fisik json masih bernilai true
+            -- 3. Nyalakan paksa tombol UI dan jalankan mesin pabriknya
             if alive() and Config.saved("Pabrik", "Running") == true then
+                Pabrik.Running = true
                 if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(true) end) end
+                if Config and Config.save then Config.save(true) end
                 if Pabrik.start then Pabrik.start() end
             end
         end)
