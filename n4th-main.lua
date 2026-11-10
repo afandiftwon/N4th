@@ -5726,6 +5726,18 @@ local function farmerScan(px, py, maxN, filter)
     local doPlant = FC.plant and fcSeeds() > 0
     local rows = {} -- [y] = daftar tempat tanam di baris itu
     local scanned = 0
+        local x0, x1, y0, y1 = 0, W - 1, 0, H - 1
+    if FC and FC.area then
+        x0 = math.max(0, math.min(Land.X0, Land.X1))
+        x1 = math.min(W - 1, math.max(Land.X0, Land.X1))
+        local rows = landRows()
+        if #rows > 0 then
+            y0, y1 = math.max(0, rows[1] - 1), math.min(H - 1, rows[#rows])
+        end
+    end
+    for y = y0, y1 do
+        local frow, below = w.fg[y], w.fg[y + 1]
+        for x = x0, x1 do
     for y = 0, H - 1 do
         local frow, below = w.fg[y], w.fg[y + 1]
         for x = 0, W - 1 do
