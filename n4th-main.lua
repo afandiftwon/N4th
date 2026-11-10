@@ -7262,18 +7262,26 @@ function Pabrik.start()
     elseif not Pabrik.WholeWorld and #landRows() == 0 then
         err = "Atur lahan dulu (tab Lahan)"
     end
-    if err then
-        -- === TAMENG PENGAMAN SUPER KETAT: Mencegah bunuh diri saat lag pemuatan data booting ===
-        if Pabrik.Running and (err == "Kamu belum masuk world" or err == "Block dari seed ini tidak ketemu") then
-            Pabrik.Status = "Menunggu database game siap: " .. err
-            return -- Keluar dari fungsi dengan aman, BIARKAN SAKLAR UI TETAP MENYALA (TRUE)!
+        if err then
+        -- === KITA PERBAIKI TAMENG UTAMA INI AGAR MEMANGGIL ULANG DIRINYA SENDIRI SAAT LAG ===
+        if Pabrik.Running and (err == "Kamu belum masuk world" or err == "Seed habis" or err == "Block dari seed ini tidak ketemu") then
+            Pabrik.Status = "Menunggu game siap: " .. err
+            
+            -- Kita beri jeda 2 detik, lalu paksa bot memanggil ulang fungsi Pabrik.start() secara otomatis
+            task.delay(2, function()
+                if alive() and Pabrik.Running then
+                    Pabrik.start()
+                end
+            end)
+            return -- Keluar dari sesi putaran lag ini dengan aman
         end
-        -- ======================================================================================
+        -- ====================================================================================
 
         notify("Pabrik", err, 4)
         if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(false) end) end
         return
     end
+
     if State.Running and not State.Override then stopFarm("Dihentikan karena Pabrik dimulai") end
     if Clear.Running then stopClear("Dihentikan karena Pabrik dimulai") end
     if Farmer.Running then stopFarmer("Dihentikan karena Pabrik dimulai") end
