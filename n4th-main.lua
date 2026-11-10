@@ -5720,6 +5720,7 @@ end
 --           atau baris terdekat dengan karakter), dari tile paling kiri ke kanan.
 local function farmerScan(px, py, maxN, filter)
     local w = Refs.World
+    if Pabrik and Pabrik.Running and State.Running and Pabrik.Phase == "BREAK" then return {}, nil end
     local W, H = w.w, w.h
     local best = {}
     local now = os.clock()
