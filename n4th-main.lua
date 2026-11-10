@@ -7184,6 +7184,10 @@ function Pabrik.start()
         err = "Atur lahan dulu (tab Lahan)"
     end
     if err then
+        if err == "Kamu belum masuk world" and Pabrik.Running then
+            Pabrik.Status = "Menunggu karakter masuk world..."
+            return
+        end
         notify("Pabrik", err, 4)
         if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(false) end) end
         return
