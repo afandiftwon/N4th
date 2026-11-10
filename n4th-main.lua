@@ -13845,13 +13845,14 @@ task.spawn(function()
         if not Guard.On then Guard.set(true) end
     end
     Config.start()
-    if Pabrik.Running and alive() then
+    if Config.saved("Pabrik", "Running") == true and alive() then
         task.spawn(function()
-            -- Menunggu hingga sistem game benar-benar terhubung dan siap
             while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
                 task.wait(1) 
             end
             if alive() and Pabrik.Running then
+                -- Tambahkan pemaksaan refresh UI saat auto-booting berhasil
+                if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(true) end) end
                 if Pabrik.start then Pabrik.start() end
             end
         end)
