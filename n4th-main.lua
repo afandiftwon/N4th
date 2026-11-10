@@ -7010,21 +7010,45 @@ end
 -- Hasil: "drop" | "work" | "move" | "wait" | "break" | "next" | "idle" (+ detik ke pohon siap)
 local function pabrikStep(o)
     local seeds, blocks = invCount(o.seed), invCount(o.block)
-    o.phase = o.phase or "panen"
-    Pabrik.Phase = PHASE_NAME[o.phase]
-    -- drop seed lebihan (kapan saja)
-    if o.drop and Pabrik.Drop and seeds >= Pabrik.DropAt and seeds > Pabrik.Keep
+    
+    -- Inisialisasi status fase awal jika baru pertama kali dijalankan
+    if not o.init_done then
+        o.init_done = true
+        -- CASE 1: Jika baru pertama kali jalan saat login & block > 100, LANGSUNG SIKAT BREAK!
+        if blocks >= 100 and breakReady() then
+            o.phase = "break"
+            Pabrik.Phase = PHASE_NAME[o.phase]
+            if breakReady() and pabrikBreak(o) then
+                o.phase = (invCount(o.block) > 0) and "break" or "tanam"
+                return "break"
+            end
+        end
+    end
+
+    -- PENGAMBILAN KEPUTUSAN UTAMA (FASE DYNAMIC PRIORITY)
+    
+    -- Pengaman Darurat: Jika seed hampir penuh, paksa langsung masuk fase drop trip
+    if o.drop and Pabrik.Drop and seeds >= Pabrik.DropAt and seeds > Pabrik.Keep 
         and os.clock() >= (Pabrik.DropOffUntil or 0) then
         pabrikDrop(o.seed, seeds - Pabrik.Keep, o.live)
         return "drop"
     end
 
+    -- CASE 2: Jika seed > 30 tetapi block <= 10, PRIORITASIN TANAM daripada panen!
+    if seeds >= 30 and blocks <= 10 and o.phase ~= "tanam" and o.phase ~= "break" then
+        o.phase = "tanam"
+    end
+
+    Pabrik.Phase = PHASE_NAME[o.phase or "panen"]
+
+    -- Eksekusi Logika Per Fase Secara Adaptif
     if o.phase == "panen" then
-        -- 1x panen bisa kena beberapa pohon, jadi sisakan ruang ~20 item
+        -- Batasi panen jika inventori sudah sangat penuh mendekati limit 190
         if blocks >= CAP - 20 or seeds >= CAP - 20 then
             o.phase = "tanam"
             return "next"
         end
+        
         FC = pabrikCfg(o, true, false)
         local r = fieldStep()
         if r == "idle" then
@@ -7046,44 +7070,47 @@ local function pabrikStep(o)
     end
 
     if o.phase == "break" then
-        local want
+        local want = false
         if o.breakMode == "always" then
             want = blocks > 0
-        else -- mode produksi: break hanya untuk dapat seed awal
+        else
+            -- Mode produksi pintar: jalankan break hanya jika block tersedia & seed masih kritis
             local _, nxt = readyTreeCount(o.whole)
             want = blocks > 0 and seeds < BOOT_SEEDS and nxt == nil
         end
+        
         if want and breakReady() and pabrikBreak(o) then
-            -- === MODIFIKASI BARIS INI: Paksa cek sisa block fisik di tas inventori ===
+            -- MODIFIKASI PERMANEN: Diwajibkan menghancurkan sisa block sampai murni 0 baru boleh pindah fase
             if invCount(o.block) > 0 then
-                o.phase = "break" -- Jika block masih ada, kunci tetap di fase break (habiskan dulu!)
+                o.phase = "break"
             else
-                o.phase = "tanam" -- Jika block sudah murni 0, baru diizinkan pergi menanam
+                o.phase = "tanam"
             end
             return "break"
-            -- =========================================================================
         end
         o.phase = "tunggu"
         return "next"
     end
 
-    -- tunggu
+    -- Fase Tunggu (Idle / Rest)
     local n, nxt = readyTreeCount(o.whole)
     if n > 0 and os.clock() - (o.idleAt or 0) > 5 then
         o.phase = "panen"
         return "next"
     end
-    if o.breakMode == "always" and blocks > 0 and breakReady() then
+    if blocks > 0 and breakReady() then
         o.phase = "break"
         return "next"
     end
     if seeds > 0 and os.clock() - (o.plantAt or 0) > 10 then
-        o.plantAt = os.clock() -- sesekali cek tile kosong (misal pohon dipanen orang lain)
+        o.plantAt = os.clock()
         o.phase = "tanam"
         return "next"
     end
+    
     return "idle", nxt, n
 end
+
 
 local function waitText(sec)
     sec = math.max(0, math.ceil(sec or 0))
@@ -7166,6 +7193,7 @@ function Pabrik.stop(reason)
         if not string.find(reason, "^Dihentikan") then Hook.send("pabrik", "Pabrik berhenti: " .. reason) end
     end
     if Config and Config.save then Config.save(true) end 
+    if o then o.init_done = nil end
 end
 
 function Pabrik.start()
