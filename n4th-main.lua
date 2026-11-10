@@ -12484,7 +12484,6 @@ do (function()
                     if Config and Config.save then Config.save(true) end
                     Pabrik.start() 
                 else 
-                    -- Tameng Pelindung: Jika game belum siap/loading luar world, JANGAN matikan config!
                     if Config.saved("Pabrik", "Running") == true and not playerState() then 
                         return 
                     end
@@ -12496,7 +12495,7 @@ do (function()
                     if Config and Config.save then Config.save(true) end 
                 end
             end
-        end)
+        })
     end)
 
 
