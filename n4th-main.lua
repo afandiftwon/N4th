@@ -6498,7 +6498,8 @@ local function pabrikBreak(o)
     local s = playerState()
     if not s then return false end
     local hx, hy = startNode(s)
-    if hx ~= Pabrik.BreakX or hy ~= Pabrik.BreakY then
+    -- Kita ubah tanda '~=' menjadi pengecekan jarak absolut (toleransi selisih <= 1 block akibat desimal game)
+    if math.abs(hx - Pabrik.BreakX) > 1 or math.abs(hy - Pabrik.BreakY) > 1 then
         Pabrik.Status = ("Jalan ke posisi break (%d,%d)"):format(Pabrik.BreakX, Pabrik.BreakY)
         if not walkTo(Pabrik.BreakX, Pabrik.BreakY, 45) then
             Pabrik.Status = "Gagal jalan ke posisi break, dicoba lagi nanti"
@@ -13955,7 +13956,9 @@ task.spawn(function()
         if not Guard.On then Guard.set(true) end
     end
     Config.start()
-    if Config.saved("Pabrik", "Running") == true and alive() then
+    -- Kita tambahkan kondisi 'and not Pabrik.Running' agar tidak menimpa saklar saat lu klik mati manual
+    if Config.saved("Pabrik", "Running") == true and not Pabrik.Running and alive() then
+
         task.spawn(function()
             -- 1. Tunggu sampai karakter benar-benar masuk world & menapak tanah
             while alive() and not (Refs.World and Refs.Inv and Auto.here()) do 
