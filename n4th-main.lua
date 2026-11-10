@@ -705,6 +705,8 @@ local Splice = {
     Row = {},           -- baris yang sedang dikerjakan (rapi per baris)
 }
 
+local landRows 
+
 -- Lahan (farm world): baris block dari atas ke bawah
 local Land = {
     X0 = 0, X1 = 99,  -- kolom awal & akhir
@@ -6274,7 +6276,7 @@ end
 -- (tanah di celah baris digali Bangun Lahan, tanah di baris lahan dipakai sebagai lahan).
 -- Kedua ujung baris dibuat tangga (lihat landCols).
 -- Hasil disimpan sebentar (dipanggil sangat sering oleh Pabrik / status).
-local function landRows()
+function landRows()
     local w = Refs.World
     if not w then return {} end
     local x0 = math.clamp(math.floor(math.min(Land.X0, Land.X1)), 0, w.w - 1)
