@@ -1862,7 +1862,7 @@ Config.add("Vending", Vend, { "Mode", "Point", "Items", "DropX", "DropY" })
 Config.add("AutoDrop", AutoDrop, { "Items", "World", "X", "Y", "Facing" })
 Config.add("WorldFinder", WorldFinder, { "Mode", "Custom", "Manual", "Limit", "DelaySec", "WebhookEach" })
 Config.add("Pabrik", Pabrik, {
-    "SeedId", "WholeWorld", "Tiles", "BreakX", "BreakY",
+    "Running", "SeedId", "WholeWorld", "Tiles", "BreakX", "BreakY",
     "Drop", "Keep", "DropAt", "DropWorld", "DropX", "DropY",
 })
 Config.add("Bahasa", I18N, { "Saved", "Ask", "Chosen" })
@@ -13837,6 +13837,11 @@ task.spawn(function()
         if not Guard.On then Guard.set(true) end
     end
     Config.start()
+    if Pabrik.Running and alive() then
+        task.defer(function()
+            if Pabrik.start then Pabrik.start() end
+        end)
+    end
     if I18N.SavePending then
         I18N.SavePending = nil
         Config.save(true)
@@ -13915,31 +13920,3 @@ end
 Session.InitStep = "siap"
 Session.Ready = true
 print("[n4th] Menu siap (build " .. Session.Build .. ")")
-
--- =======================================================
--- KODE AUTOMATIC FORCE-ON PABRIK (SINKRONISASI DATA SEED)
--- =======================================================
-task.spawn(function()
-    -- Loop aman berjalan di latar belakang setiap 2 detik
-    while task.wait(2) do
-        -- Tunggu sampai data world, status player, dan yang terpenting SEED ID sudah valid (tidak nil)
-        if Refs.World and playerState() and Pabrik.SeedId then
-            task.wait(1) -- Jeda aman 1 detik ekstra agar sinkronisasi UI stabil
-            
-            -- Jika saat datanya siap ternyata pabrik masih posisi OFF, langsung paksa ON
-            if not Pabrik.Running then
-                pcall(function()
-                    Pabrik.start()
-                end)
-                
-                -- Jika berhasil aktif, hentikan loop pemantauan ini
-                if Pabrik.Running then
-                    print("[n4th Mod] Sukses! Fitur Pabrik berhasil otomatis ON.")
-                    break
-                end
-            else
-                break -- Keluar jika ternyata sudah menyala sendiri
-            end
-        end
-    end
-end)
