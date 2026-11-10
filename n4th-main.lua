@@ -7072,6 +7072,10 @@ local function pabrikStep(o)
         o.phase = "tanam"
     end
 
+    if not o.phase or o.phase == "" then
+        o.phase = "panen"
+    end
+
     Pabrik.Phase = PHASE_NAME[o.phase or "panen"]
 
     -- Eksekusi Logika Per Fase Secara Adaptif
