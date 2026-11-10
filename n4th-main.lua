@@ -13978,14 +13978,14 @@ task.spawn(function()
             
             -- 3. Nyalakan paksa tombol UI dan jalankan mesin pabriknya
             if alive() and Config.saved("Pabrik", "Running") == true then
-                Pabrik.Running = true
                 if UI.PabrikToggle then pcall(function() UI.PabrikToggle:Set(true) end) end
                 
                 -- KITA JALANKAN DULU MESIN PABRIKNYA BIAR MASUK LOOP UTAMA
-                if Pabrik.start then Pabrik.start() end 
                 
                 -- BARU KITA PANGGIL PENYIMPANAN FISIK DI BARIS PALING AKHIR SETELAH AMAN
                 if Config and Config.save then Config.save(true) end 
+                
+                if Pabrik.start then Pabrik.start() end 
             end
         end)
     end
