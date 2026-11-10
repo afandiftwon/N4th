@@ -7150,9 +7150,17 @@ function Pabrik.stop(reason)
 end
 
 function Pabrik.start()
-    if Pabrik.Running then return end
+    -- Hapus pembatas 'if Pabrik.Running then return end' agar fungsi start bisa me-refresh tugasnya
     if WorldFinder.Busy then notify("World Finder", "Hentikan hunting sebelum menjalankan farming", 3) return end
     if AutoDrop.Busy then notify("Auto Drop", "Tunggu perjalanan drop selesai", 3) return end
+    
+    -- === TAMBAHKAN BARIS DI BAWAH INI UNTUK MEMAKSA REFRESH REFERENSI GAME ===
+    pcall(findRefs)
+    pcall(findDropRefs, true)
+    if not Refs.Trees then pcall(findTreeRefs) end
+    if Land then Land.Cache = nil end
+    -- =======================================================================
+    
     local err
     local block = blockOfSeed(Pabrik.SeedId)
     if not Refs.World then
