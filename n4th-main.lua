@@ -12403,7 +12403,7 @@ do (function()
         UI.PabrikToggle = pCtl:Toggle({
             Title = "Jalankan Pabrik",
             Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
-            Value = false,
+            Value = Pabrik.Running,
             Callback = function(on)
                 if on then Pabrik.start() elseif Pabrik.Running then Pabrik.stop() end
             end,
