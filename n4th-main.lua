@@ -12431,11 +12431,12 @@ do (function()
         Value = Pabrik.Running,
         Callback = function(on)
             if on then 
-                if not Pabrik.Running then
-                    Pabrik.start() 
-                    Pabrik.Running = true -- Set true setelah fungsi start dipicu agar tidak terkena lock return
-                    if Config and Config.save then Config.save(true) end 
-                end
+                -- Langsung kunci status aktif sejak milidetik pertama tombol ditekan / dipicu otomatis
+                Pabrik.Running = true 
+                if Config and Config.save then Config.save(true) end 
+                
+                -- Panggil fungsi start setelah statusnya aman terkunci di file fisik config
+                Pabrik.start() 
             else 
                 Pabrik.Running = false
                 if Rejoin then Rejoin.Last = nil end
@@ -12444,7 +12445,7 @@ do (function()
                 if Config and Config.save then Config.save(true) end 
             end
         end,
-        })
+    })
     end)
 
     safe(function()
