@@ -13917,21 +13917,28 @@ Session.Ready = true
 print("[n4th] Menu siap (build " .. Session.Build .. ")")
 
 -- =======================================================
--- TAMBAHAN KODE: FORCE AUTOMATIC START PABRIK
+-- KODE AUTOMATIC FORCE-ON PABRIK (SINKRONISASI DATA SEED)
 -- =======================================================
 task.spawn(function()
-    -- Loop aman untuk menunggu data world benar-benar terhubung ke script
+    -- Loop aman berjalan di latar belakang setiap 2 detik
     while task.wait(2) do
-        if type(Pabrik) == "table" and type(Pabrik.start) == "function" and type(Refs) == "table" then
-            -- Tunggu sampai pengecekan internal script (Refs.World) terpenuhi
-            if Refs.World and not Pabrik.Running then
+        -- Tunggu sampai data world, status player, dan yang terpenting SEED ID sudah valid (tidak nil)
+        if Refs.World and playerState() and Pabrik.SeedId then
+            task.wait(1) -- Jeda aman 1 detik ekstra agar sinkronisasi UI stabil
+            
+            -- Jika saat datanya siap ternyata pabrik masih posisi OFF, langsung paksa ON
+            if not Pabrik.Running then
                 pcall(function()
                     Pabrik.start()
                 end)
+                
+                -- Jika berhasil aktif, hentikan loop pemantauan ini
                 if Pabrik.Running then
-                    print("[n4th Edit] Fitur Pabrik berhasil diaktifkan secara otomatis saat start!")
-                    break -- Berhenti loop jika sudah berhasil ON
+                    print("[n4th Mod] Sukses! Fitur Pabrik berhasil otomatis ON.")
+                    break
                 end
+            else
+                break -- Keluar jika ternyata sudah menyala sendiri
             end
         end
     end
