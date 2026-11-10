@@ -12475,17 +12475,16 @@ do (function()
         UI.PabrikToggle = pCtl:Toggle({
             Title = "Jalankan Pabrik",
             Desc = "Break -> tanam -> panen -> break lagi, seed lebihan di-drop",
-            -- === UBAH VALUE BARIS INI: Mengikuti status config terakhir, bukan dikunci false ===
-            Value = Pabrik.Running, 
-            -- =================================================================================
+            -- === UBAH BARIS INI: Baca langsung dari file json fisik agar anti-overwritten ===
+            Value = (Config.saved("Pabrik", "Running") == true), 
+            -- ==============================================================================
             Callback = function(on)
                 if on then 
-                    -- Kunci status memori aktif sejak milidetik pertama diklik
                     Pabrik.Running = true
                     if Config and Config.save then Config.save(true) end
                     Pabrik.start() 
                 else 
-                    -- Cegah penulisan false jika dipicu oleh delay booting awal di luar world
+                    -- Tameng Pelindung: Jika game belum siap/loading luar world, JANGAN matikan config!
                     if Config.saved("Pabrik", "Running") == true and not playerState() then 
                         return 
                     end
@@ -12496,8 +12495,8 @@ do (function()
                     if Pabrik.stop then Pabrik.stop() end
                     if Config and Config.save then Config.save(true) end 
                 end
-            end,
-        })
+            end
+        end)
     end)
 
 
